@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Task Management</title>
+</head>
+<body>
+    <div class="container-fluid d-flex">
+        <div class="container main-navigation position-fixed top-0 start-0 h-100 px-0 mx-0">
+            <div class="headers mt-3 p-3">
+                <h6 class="opacity-100 text-light" style="font-size: 1.2rem;">TaskFlow</h6>
+                <p class="mt-4 opacity-75" style="font-size: .8rem;">Main Navigation</p>
+            </div>
+            <div class="lists">
+                <ul>
+                    <li class="list-unstyled d-flex gap-3 align-items-center">
+                        <a class="underlink text-decoration-none" href="index.html">
+                            <i class="fa-solid fa-house"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li class="list-unstyled d-flex gap-3 align-items-center">
+                        <a class="underlink text-decoration-none" href="tasks.html">
+                            <i class="fa-solid fa-list-check"></i>
+                            All Tasks
+                        </a>
+                    </li>
+                    <li class="list-unstyled d-flex gap-3 align-items-center">
+                        <a class="underlink text-decoration-none" href="progress.html">
+                            <i class="fa fa-tasks" aria-hidden="true"></i>
+                            Progression
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="container px-0" style="width: 30%; margin-left: 19%;">
+            <div class="task-section">
+                <div class="task-header p-3" style="color: var(--text-color-secondary);">
+                    <h4 class="mt-2" style="font-size: .9rem;">Task Section</h4>
+                </div>
+                <div class="add-section d-flex justify-content-center align-items-center">
+                    <button class="btn btn-outline-light w-75 add-task-btn">Add Task</button>
+                </div>
+                <div class="task-list mt-3">
+                    <ul class="ps-0 p-1">
+                        <li class="list-unstyled d-flex gap-3 align-items-center p-2">
+                            <div class="card first-task border text-light p-2 rounded-3 task-card">
+                                <h6 style="font-size:.9rem;">Launch Q2 automation workflow</h6>
+                                <p style="font-size:.7rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">Configure A1 agents to automate recurring approvals, route incoming tasks intelligently, and</p>                                    
+                                <div class="lower-content d-flex justify-content-between align-items-center" style="min-height: 30px;">
+                                    <small class="text-secondary" style="font-size: .7rem;">20-05-2026</small>
+                                    <p class="opacity-75 mb-0 pending-status" style="font-size: .8rem;">PENDING</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-unstyled d-flex gap-3 align-items-center p-2">
+                            <div class="card first-task border text-light p-2 rounded-3 task-card">
+                                <h6 style="font-size: .9rem;">Launch Q2 automation workflow</h6>
+                                <p class="" style="font-size: .7rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">Configure A1 agents to automate recurring approvals, route incoming tasks intelligently, and</p>                                    
+                                <div class="lower-content d-flex justify-content-between align-items-center" style="min-height: 30px;">
+                                    <small class="text-secondary" style="font-size: .7rem;">20-05-2026</small>
+                                    <p class="opacity-75 mb-0 inprogress-status" style="font-size: .8rem;">IN_PROGRESS</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-unstyled d-flex gap-3 align-items-center p-2">
+                            <div class="card first-task border text-light p-2 rounded-3 task-card">
+                                <h6 style="font-size: .9rem;">Launch Q2 automation workflow</h6>
+                                <p class="" style="font-size: .7rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">Configure A1 agents to automate recurring approvals, route incoming tasks intelligently, and</p>                                    
+                                <div class="lower-content d-flex justify-content-between align-items-center" style="min-height: 30px;">
+                                    <small class="text-secondary" style="font-size: .7rem;">20-05-2026</small>
+                                    <p class="opacity-75 mb-0 inprogress-status" style="font-size: .8rem;">IN_PROGRESS</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-unstyled d-flex gap-3 align-items-center p-2">
+                            <div class="card first-task border text-light p-2 rounded-3 task-card">
+                                <h6 style="font-size: .9rem;">Launch Q2 automation workflow</h6>
+                                <p class="" style="font-size: .7rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">Configure A1 agents to automate recurring approvals, route incoming tasks intelligently, and</p>                                    
+                                <div class="lower-content d-flex justify-content-between align-items-center" style="min-height: 30px;">
+                                    <small class="text-secondary" style="font-size: .7rem;">20-05-2026</small>
+                                    <p class="opacity-75 mb-0 completed-status" style="font-size: .8rem;">COMPLETED</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="container px-0" style="width: 50%;">
+            <div class="ongoing-plans">
+                <div class="ongoing-header p-3 mb-1" style="color: var(--text-color-secondary);">
+                    <h4 class="mt-2" style="font-size: .9rem;">Today's List</h4>
+                    <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: 35%"></div>
+                    </div>
+                </div>
+                <div class="today-list mt-1">
+                    <ul class="ps-0 p-1">
+                        <li class="list-unstyled d-flex gap-3 align-items-center p-2">
+                            <div class="card first-task border text-light p-2 rounded-3 today-card high-priority">
+                                <small>High</small>
+                                <h6 class="mt-2" style="font-size:.9rem;">Launch Q2 automation workflow</h6>
+                                <p style="font-size:.7rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">Configure A1 agents to automate recurring approvals, route incoming tasks intelligently, and</p>                                    
+                                <div class="lower-content d-flex justify-content-between align-items-center" style="min-height: 30px;">
+                                    <small class="text-secondary" style="font-size: .7rem;">20-05-2026</small>
+                                    <p class="opacity-75 mb-0 pending-status" style="font-size: .8rem;">PENDING</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-unstyled d-flex gap-3 align-items-center p-2">
+                            <div class="card first-task border text-light p-2 rounded-3 today-card high-priority">
+                                <small>High</small>
+                                <h6 class="mt-2" style="font-size: .9rem;">Launch Q2 automation workflow</h6>
+                                <p class="" style="font-size: .7rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">Configure A1 agents to automate recurring approvals, route incoming tasks intelligently, and</p>                                    
+                                <div class="lower-content d-flex justify-content-between align-items-center" style="min-height: 30px;">
+                                    <small class="text-secondary" style="font-size: .7rem;">20-05-2026</small>
+                                    <p class="opacity-75 mb-0 inprogress-status" style="font-size: .8rem;">IN_PROGRESS</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-unstyled d-flex gap-3 align-items-center p-2">
+                            <div class="card first-task border text-light p-2 rounded-3 today-card medium-priority">
+                                <small>Medium</small>
+                                <h6 class="mt-2" style="font-size: .9rem;">Launch Q2 automation workflow</h6>
+                                <p class="" style="font-size: .7rem; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">Configure A1 agents to automate recurring approvals, route incoming tasks intelligently, and</p>                                    
+                                <div class="lower-content d-flex justify-content-between align-items-center" style="min-height: 30px;">
+                                    <small class="text-secondary" style="font-size: .7rem;">20-05-2026</small>
+                                    <p class="opacity-75 mb-0 inprogress-status" style="font-size: .8rem;">IN_PROGRESS</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="container px-0" style="width: 20%;">
+            <div class="calander">
+                <div class="calander-header p-3 mb-1" style="color: var(--text-color-secondary);">
+                    <h4 class="mt-2" style="font-size: .9rem;">Calander</h4>
+                    <div class="addCalander ">
+                        <button class="btn border d-flex align-items-center gap-2 justify-content-center w-100 btn-outline-light add-calendar-btn" style="font-size: .7rem;">
+                            <i class="fa fa-plus" style="margin-top: 3px;" aria-hidden="true"></i>
+                            Add Calander Notes</button>
+                    </div>
+                </div>
+                <div class="calender-task">
+                    <div class="calander-wrapper text-light p-1">
+                        <h6 style="font-size: .8rem; margin-top: 12px;">15 April</h6>
+                        
+                        <div class="time-task d-flex align-items-center px-2 py-2 w-100 border rounded mb-1 calendar-item">
+                            <div class="time" style="min-width: 60px;">
+                                <h6 class="mb-0" style="font-size: .8rem; color: #82b1ff;">08:00</h6>
+                            </div>
+                            <div class="vertical-line mx-2" style="width: 1px; height: 30px; background: linear-gradient(to bottom, #7c4dff, #b388ff);"></div>
+                            <div class="time-title flex-grow-1">
+                                <span class="d-block fw-bold" style="font-size: .6rem; color: #b388ff;">Morning Standup</span>
+                                <p class="mb-0" style="font-size: .5rem; color: #9e9e9e;">Daily team sync</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body> 
+</html>

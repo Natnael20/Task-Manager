@@ -1,0 +1,258 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    min-width: 320px;
+    scroll-behavior: smooth;
+    background: radial-gradient(ellipse at top left, #0f0c29, #302b63, #24243e);
+    position: relative;
+}
+
+:root {
+    --background: #0b1220;
+    --text-color-secondary: #929292;
+    --Text-light-gray: #555555;
+    --light: #fff;
+}
+
+/* ===== NAVIGATION ===== */
+.main-navigation {
+    width: 20%;
+    background: linear-gradient(180deg, #0f0c29 0%, #1a1a3e 50%, #24243e 100%);
+    border-right: 1px solid rgba(123, 76, 255, 0.2);
+    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.headers::before {
+    content: '';
+    position: absolute;
+    top: 100px;
+    left: 5px;
+    width: 90%;
+    height: 3%;
+    background: linear-gradient(90deg, #7c4dff, #b388ff, #7c4dff);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(123, 76, 255, 0.4);
+}
+
+/* ===== LINKS ===== */
+.underlink {
+    position: relative;
+    overflow: hidden;
+    color: #b0b0b0;
+    font-size: .85rem;
+    line-height: 3;
+    transition: all 0.3s ease;
+}
+
+.underlink::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #7c4dff, #b388ff, #7c4dff);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+    box-shadow: 0 0 15px rgba(123, 76, 255, 0.6);
+}
+
+.underlink:hover::before {
+    transform: scaleX(1);
+}
+
+.underlink:hover {
+    color: #fff;
+    text-shadow: 0 0 20px rgba(123, 76, 255, 0.5);
+}
+
+.lists > ul li a i {
+    color: #7c4dff;
+    transition: all 0.3s ease;
+}
+
+.lists > ul li a:hover i {
+    color: #b388ff;
+    text-shadow: 0 0 30px rgba(123, 76, 255, 0.8);
+    transform: scale(1.1);
+}
+
+/* ===== TASK CARDS ===== */
+.card {
+    background: linear-gradient(145deg, #1a1a3e, #0f0c29) !important;
+    border: 1px solid rgba(123, 76, 255, 0.2) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(123, 76, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(123, 76, 255, 0.05) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px) scale(1.01);
+    border-color: rgba(123, 76, 255, 0.5) !important;
+    box-shadow: 0 8px 40px rgba(123, 76, 255, 0.25), inset 0 1px 0 rgba(123, 76, 255, 0.2);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* ===== PRIORITY COLORS ===== */
+.high-priority {
+    background: linear-gradient(145deg, #3d1a2e, #1a0a1a) !important;
+    border-left: 3px solid #ff6b6b !important;
+    box-shadow: 0 4px 20px rgba(255, 107, 107, 0.15);
+}
+
+.high-priority small {
+    color: #ff6b6b;
+    text-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+}
+
+.medium-priority {
+    background: linear-gradient(145deg, #3d2e1a, #1a1a0a) !important;
+    border-left: 3px solid #ffd93d !important;
+    box-shadow: 0 4px 20px rgba(255, 217, 61, 0.15);
+}
+
+.medium-priority small {
+    color: #ffd93d;
+    text-shadow: 0 0 20px rgba(255, 217, 61, 0.3);
+}
+
+/* ===== STATUS COLORS ===== */
+.pending-status {
+    color: #ffd93d !important;
+    text-shadow: 0 0 20px rgba(255, 217, 61, 0.3);
+}
+
+.inprogress-status {
+    color: #4dabf7 !important;
+    text-shadow: 0 0 20px rgba(77, 171, 247, 0.3);
+}
+
+.completed-status {
+    color: #69db7c !important;
+    text-shadow: 0 0 20px rgba(105, 219, 124, 0.3);
+}
+
+/* ===== TODAY'S CARDS ===== */
+.today-card {
+    background: linear-gradient(145deg, #1a1a3e, #0f0c29) !important;
+    border: 1px solid rgba(123, 76, 255, 0.15) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.today-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle at top right, rgba(123, 76, 255, 0.1), transparent 70%);
+    pointer-events: none;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #7c4dff, #b388ff, #7c4dff);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(123, 76, 255, 0.3);
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ===== CALENDAR ===== */
+.calendar-item {
+    background: linear-gradient(145deg, #1a1a3e, #0f0c29) !important;
+    border: 1px solid rgba(123, 76, 255, 0.1) !important;
+    transition: all 0.3s ease;
+}
+
+.calendar-item:hover {
+    background: linear-gradient(145deg, #24245e, #1a1a4e) !important;
+    border-color: rgba(123, 76, 255, 0.3) !important;
+    transform: translateX(4px);
+    box-shadow: 0 4px 20px rgba(123, 76, 255, 0.15);
+}
+
+/* ===== BUTTONS ===== */
+.add-task-btn {
+    background: linear-gradient(145deg, #7c4dff, #b388ff) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(123, 76, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.add-task-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(123, 76, 255, 0.5);
+    background: linear-gradient(145deg, #8c5fff, #c299ff) !important;
+}
+
+.add-calendar-btn {
+    background: linear-gradient(145deg, #1a1a3e, #0f0c29) !important;
+    border: 1px solid rgba(123, 76, 255, 0.2) !important;
+    color: #b0b0b0 !important;
+    transition: all 0.3s ease;
+}
+
+.add-calendar-btn:hover {
+    background: linear-gradient(145deg, #7c4dff, #b388ff) !important;
+    border-color: #7c4dff !important;
+    color: #fff !important;
+    box-shadow: 0 4px 20px rgba(123, 76, 255, 0.3);
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7c4dff, #b388ff);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #8c5fff, #c299ff);
+}

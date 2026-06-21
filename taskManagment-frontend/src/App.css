@@ -1,0 +1,23 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  height: 100%;
+}
+
+.btn {
+  background: linear-gradient(145deg, #1a1a3e, #0f0c29) !important;
+  border: 1px solid rgba(123, 76, 255, 0.2) !important;
+  color: #b0b0b0 !important;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  background: linear-gradient(145deg, #7c4dff, #b388ff) !important;
+  border-color: #7c4dff !important;
+  color: #fff !important;
+  box-shadow: 0 4px 20px rgba(123, 76, 255, 0.3);
+}
