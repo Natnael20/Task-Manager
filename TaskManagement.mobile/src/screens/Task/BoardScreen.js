@@ -13,8 +13,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import NavBar from '../Components/NavBar';
-import { getAllTasks, deleteTask } from '../services/api';
+import NavBar from '../../Components/NavBar';
+import { getAllTasks, deleteTask } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -55,12 +55,12 @@ const BoardScreen = ({ navigation }) => {
     }
   };
 
-  // Filter tasks based on status
+  // Filter tasks based on priority
   const filterTasks = (tasksList, filter) => {
     if (filter === 'ALL') {
       setFilteredTasks(tasksList);
     } else {
-      const filtered = tasksList.filter(task => task.status === filter);
+      const filtered = tasksList.filter(task => task.priority === filter);
       setFilteredTasks(filtered);
     }
   };
@@ -154,23 +154,23 @@ const BoardScreen = ({ navigation }) => {
     }
   };
 
-  // Get count for each status
-  const getStatusCount = (status) => {
-    if (status === 'ALL') return tasks.length;
-    return tasks.filter(task => task.status === status).length;
+  // Get count for each priority
+  const getPriorityCount = (priority) => {
+    if (priority === 'ALL') return tasks.length;
+    return tasks.filter(task => task.priority === priority).length;
   };
 
-  // Get filter display info - CONSOLIDATED
+  // Get filter display info - CONSOLIDATED for PRIORITY
   const getFilterDisplay = (filter) => {
     switch(filter) {
       case 'ALL':
         return { text: 'All Tasks', color: '#6C63FF', icon: 'apps' };
-      case 'PENDING':
-        return { text: 'Pending', color: '#EF4444', icon: 'time' };
-      case 'IN_PROGRESS':
-        return { text: 'In Progress', color: '#F59E0B', icon: 'sync' };
-      case 'COMPLETED':
-        return { text: 'Completed', color: '#22C55E', icon: 'checkmark-done-circle' };
+      case 'HIGH':
+        return { text: 'High', color: '#EF4444', icon: 'flash' };
+      case 'MEDIUM':
+        return { text: 'Medium', color: '#F59E0B', icon: 'alert-circle' };
+      case 'LOW':
+        return { text: 'Low', color: '#22C55E', icon: 'leaf' };
       default:
         return { text: 'All Tasks', color: '#6C63FF', icon: 'apps' };
     }
@@ -195,7 +195,6 @@ const BoardScreen = ({ navigation }) => {
     const checklist = item.checklist || [];
     const totalItems = checklist.length;
     const completedItems = checklist.filter(i => i.completed).length;
-    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
     return (
       <TouchableOpacity 
@@ -214,8 +213,8 @@ const BoardScreen = ({ navigation }) => {
             </Text>
             <View style={[
               styles.priorityBadge,
-              { backgroundColor: getPriorityDisplay(item.priority).color + '20' },
-              item.status === 'COMPLETED' && styles.completedBadge
+              { backgroundColor: getPriorityDisplay(item.priority).color + '10' },
+              item.status === 'COMPLETED'
             ]}>
               <Ionicons 
                 name={getPriorityDisplay(item.priority).icon} 
@@ -225,7 +224,7 @@ const BoardScreen = ({ navigation }) => {
               <Text style={[
                 styles.taskPriority,
                 { color: getPriorityDisplay(item.priority).color },
-                item.status === 'COMPLETED' && styles.completedText
+                item.status === 'COMPLETED'
               ]}>
                 {getPriorityDisplay(item.priority).text}
               </Text>
@@ -347,95 +346,95 @@ const BoardScreen = ({ navigation }) => {
               </Text>
             </View>
             <View style={styles.dropdownItemRight}>
-              <Text style={styles.dropdownItemCount}>{getStatusCount('ALL')}</Text>
+              <Text style={styles.dropdownItemCount}>{getPriorityCount('ALL')}</Text>
               {activeFilter === 'ALL' && (
                 <Ionicons name="checkmark-circle" size={20} color="#6C63FF" />
               )}
             </View>
           </TouchableOpacity>
 
-          {/* Pending Option */}
+          {/* High Priority Option */}
           <TouchableOpacity
             style={[
               styles.dropdownItem,
-              activeFilter === 'PENDING' && styles.dropdownItemActive,
+              activeFilter === 'HIGH' && styles.dropdownItemActive,
             ]}
-            onPress={() => handleFilterChange('PENDING')}
+            onPress={() => handleFilterChange('HIGH')}
           >
             <View style={styles.dropdownItemLeft}>
               <View style={[styles.dropdownIcon, { backgroundColor: '#EF444420' }]}>
-                <Ionicons name="time" size={20} color="#EF4444" />
+                <Ionicons name="flash" size={20} color="#EF4444" />
               </View>
               <Text style={[
                 styles.dropdownItemText,
-                activeFilter === 'PENDING' && styles.dropdownItemTextActive,
+                activeFilter === 'HIGH' && styles.dropdownItemTextActive,
               ]}>
-                Pending
+                High
               </Text>
             </View>
             <View style={styles.dropdownItemRight}>
               <Text style={[styles.dropdownItemCount, { color: '#EF4444' }]}>
-                {getStatusCount('PENDING')}
+                {getPriorityCount('HIGH')}
               </Text>
-              {activeFilter === 'PENDING' && (
+              {activeFilter === 'HIGH' && (
                 <Ionicons name="checkmark-circle" size={20} color="#EF4444" />
               )}
             </View>
           </TouchableOpacity>
 
-          {/* In Progress Option */}
+          {/* Medium Priority Option */}
           <TouchableOpacity
             style={[
               styles.dropdownItem,
-              activeFilter === 'IN_PROGRESS' && styles.dropdownItemActive,
+              activeFilter === 'MEDIUM' && styles.dropdownItemActive,
             ]}
-            onPress={() => handleFilterChange('IN_PROGRESS')}
+            onPress={() => handleFilterChange('MEDIUM')}
           >
             <View style={styles.dropdownItemLeft}>
               <View style={[styles.dropdownIcon, { backgroundColor: '#F59E0B20' }]}>
-                <Ionicons name="sync" size={20} color="#F59E0B" />
+                <Ionicons name="alert-circle" size={20} color="#F59E0B" />
               </View>
               <Text style={[
                 styles.dropdownItemText,
-                activeFilter === 'IN_PROGRESS' && styles.dropdownItemTextActive,
+                activeFilter === 'MEDIUM' && styles.dropdownItemTextActive,
               ]}>
-                In Progress
+                Medium
               </Text>
             </View>
             <View style={styles.dropdownItemRight}>
               <Text style={[styles.dropdownItemCount, { color: '#F59E0B' }]}>
-                {getStatusCount('IN_PROGRESS')}
+                {getPriorityCount('MEDIUM')}
               </Text>
-              {activeFilter === 'IN_PROGRESS' && (
+              {activeFilter === 'MEDIUM' && (
                 <Ionicons name="checkmark-circle" size={20} color="#F59E0B" />
               )}
             </View>
           </TouchableOpacity>
 
-          {/* Completed Option */}
+          {/* Low Priority Option */}
           <TouchableOpacity
             style={[
               styles.dropdownItem,
-              activeFilter === 'COMPLETED' && styles.dropdownItemActive,
+              activeFilter === 'LOW' && styles.dropdownItemActive,
             ]}
-            onPress={() => handleFilterChange('COMPLETED')}
+            onPress={() => handleFilterChange('LOW')}
           >
             <View style={styles.dropdownItemLeft}>
               <View style={[styles.dropdownIcon, { backgroundColor: '#22C55E20' }]}>
-                <Ionicons name="checkmark-done-circle" size={20} color="#22C55E" />
+                <Ionicons name="leaf" size={20} color="#22C55E" />
               </View>
               <Text style={[
                 styles.dropdownItemText,
-                activeFilter === 'COMPLETED' && styles.dropdownItemTextActive,
+                activeFilter === 'LOW' && styles.dropdownItemTextActive,
               ]}>
-                Completed
+                Low
               </Text>
             </View>
             <View style={styles.dropdownItemRight}>
               <Text style={[styles.dropdownItemCount, { color: '#22C55E' }]}>
-                {getStatusCount('COMPLETED')}
+                {getPriorityCount('LOW')}
               </Text>
-              {activeFilter === 'COMPLETED' && (
+              {activeFilter === 'LOW' && (
                 <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
               )}
             </View>
@@ -456,7 +455,7 @@ const BoardScreen = ({ navigation }) => {
           <View style={styles.emptyContainer}>
             <Ionicons name="checkmark-done-circle" size={60} color="#666" />
             <Text style={styles.emptyText}>
-              {activeFilter === 'ALL' ? 'No tasks yet' : `No ${activeFilter.toLowerCase().replace('_', ' ')} tasks`}
+              {activeFilter === 'ALL' ? 'No tasks yet' : `No ${activeFilter.toLowerCase()} priority tasks`}
             </Text>
             <Text style={styles.emptySubtext}>
               {activeFilter === 'ALL' 
@@ -769,9 +768,6 @@ const styles = StyleSheet.create({
   taskPriority: {
     fontSize: 12,
     fontWeight: '600',
-  },
-  completedBadge: {
-    opacity: 0.5,
   },
 });
 

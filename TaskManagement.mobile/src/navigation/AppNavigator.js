@@ -4,8 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 // Import screens from src/screens
-import HomeScreen from '../screens/Task/HomeScreen';
-import BoardScreen from '../screens/BoardScreen';
+import HomeScreen from '../screens/HomeScreen';
+import BoardScreen from '../screens/Task/BoardScreen';
 import CreateScreen from '../screens/Task/CreateScreen';
 import DetailsScreen from '../screens/Task/DetailsScreen';
 import TaskScreen from  '../screens/Task/TasksScreen';
