@@ -1,10 +1,7 @@
 import axios from 'axios';
 
-// Replace with your computer's IP address (for physical device)
-// For Android emulator: http://10.0.2.2:8081
-// For physical device: http://YOUR_COMPUTER_IP:8081
-const API_BASE_URL = 'http://192.168.1.113:8080/api/tasks'; // CHANGE THIS IP
 
+const API_BASE_URL = 'http://192.168.1.214:8080/api/tasks';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,

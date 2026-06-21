@@ -1,20 +1,32 @@
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  RefreshControl,
+  StatusBar,
+  SafeAreaView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getAllTasks, deleteTask } from '../services/api';
+import NavBar from '../../Components/NavBar';
+import { getAllTasks } from '../../services/api';
 
-function HomeScreen({ navigation }) {
+function Tasks({ navigation }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
       const response = await getAllTasks();
+      
+      console.log('📦 Fetched tasks:', response.data.length);
       
       if (Array.isArray(response.data)) {
         setTasks(response.data);
@@ -22,7 +34,7 @@ function HomeScreen({ navigation }) {
         setTasks([]);
       }
     } catch (error) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      console.error('Error fetching tasks:', error);
       setErrorMessage('Cannot connect to backend');
       setTimeout(() => setErrorMessage(''), 3000);
     } finally {
@@ -42,7 +54,6 @@ function HomeScreen({ navigation }) {
     fetchTasks();
   };
 
-
   const getPriorityDisplay = (priority) => {
     switch(priority?.toUpperCase()) {
       case 'LOW':
@@ -55,7 +66,6 @@ function HomeScreen({ navigation }) {
         return { text: priority || 'Unknown', color: '#6B7280', icon: 'help-circle-outline'};
     }
   };
-
 
   const getStatusDisplay = (status) => {
     switch(status?.toUpperCase()) {
@@ -90,37 +100,35 @@ function HomeScreen({ navigation }) {
           <View style={styles.titleContainer}>
             <Ionicons 
               name={getStatusDisplay(item.status).icon} 
-              size={24} 
+              size={20} 
               color={getStatusDisplay(item.status).color} 
             />
             <Text style={[styles.taskTitle, item.status === 'COMPLETED' && styles.completedText]}>
               {item.title || 'Untitled'}
             </Text>
-            <View style={[
-              styles.priorityBadge,
-              { backgroundColor: getPriorityDisplay(item.priority).color + '20' },
-              item.status === 'COMPLETED' && styles.completedBadge
+          </View>
+          <View style={[
+            styles.priorityBadge,
+            { backgroundColor: getPriorityDisplay(item.priority).color + '20' }
+          ]}>
+            <Ionicons 
+              name={getPriorityDisplay(item.priority).icon} 
+              size={12} 
+              color={getPriorityDisplay(item.priority).color} 
+            />
+            <Text style={[
+              styles.taskPriority,
+              { color: getPriorityDisplay(item.priority).color }
             ]}>
-              <Ionicons 
-                name={getPriorityDisplay(item.priority).icon} 
-                size={14} 
-                color={getPriorityDisplay(item.priority).color} 
-              />
-              <Text style={[
-                styles.taskPriority,
-                { color: getPriorityDisplay(item.priority).color },
-                item.status === 'COMPLETED' && styles.completedText
-              ]}>
-                {getPriorityDisplay(item.priority).text}
-              </Text>
-            </View>
+              {getPriorityDisplay(item.priority).text}
+            </Text>
           </View>
         </View>
         
         {item.description ? (
           <Text 
             style={[styles.taskDescription, item.status === 'COMPLETED' && styles.completedText]}
-            numberOfLines={1}
+            numberOfLines={2}
             ellipsizeMode="tail">
             {item.description}
           </Text>
@@ -145,21 +153,16 @@ function HomeScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1a2335" />
+        <ActivityIndicator size="large" color="#6C63FF" />
         <Text style={styles.loadingText}>Loading tasks...</Text>
+        <NavBar navigation={navigation} activeScreen="allTasks" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Success Message */}
-      {successMessage ? (
-        <View style={styles.successContainer}>
-          <Ionicons name="checkmark-circle" size={20} color="#1a2335" />
-          <Text style={styles.successText}>{successMessage}</Text>
-        </View>
-      ) : null}
+      <StatusBar barStyle="light-content" backgroundColor="#0b1220" />
       
       {/* Error Message */}
       {errorMessage ? (
@@ -169,9 +172,9 @@ function HomeScreen({ navigation }) {
         </View>
       ) : null}
 
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.welcome}>Welcome Back!</Text>
-        <Text style={styles.title}>Ready To Get Started!</Text>
+        <Text style={styles.title}>All Tasks</Text>
         <Text style={styles.taskCount}>{tasks.length} Total Tasks</Text>
       </View>
 
@@ -182,24 +185,19 @@ function HomeScreen({ navigation }) {
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#4CAF50" />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#6C63FF" />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="checkmark-done-circle" size={60} color="#666" />
             <Text style={styles.emptyText}>No tasks yet</Text>
-            <Text style={styles.emptySubtext}>Tap + to create your first task</Text>
+            <Text style={styles.emptySubtext}>Create your first task to get started</Text>
           </View>
         }
       />
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('Create')}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="create-outline" size={25} color="white" />
-      </TouchableOpacity>
+      {/* NavBar */}
+      <NavBar navigation={navigation} activeScreen="allTasks" />
     </View>
   );
 }
@@ -220,65 +218,43 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  successContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1a2335',
-    padding: 12,
-    margin: 16,
-    borderRadius: 8,
-    gap: 10,
-    position: 'absolute',
-    top: 10,
-    left: 16,
-    right: 16,
-    zIndex: 1000,
-  },
-  successText: {
-    color: '#4CAF50',
-    fontSize: 14,
-  },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a2335',
+    backgroundColor: 'rgba(244, 67, 54, 0.1)',
     padding: 12,
     margin: 16,
     borderRadius: 8,
     gap: 10,
-    position: 'absolute',
-    top: 10,
-    left: 16,
-    right: 16,
-    zIndex: 1000,
+    borderWidth: 1,
+    borderColor: '#f44336',
   },
   errorText: {
     color: '#f44336',
     fontSize: 14,
   },
   header: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  welcome: {
-    fontSize: 13,
-    color: '#ffffffd3',
-    marginBottom: 4,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    backgroundColor: '#0b1220',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#ffffffd3',
-    marginBottom: 10,
   },
   taskCount: {
-    fontSize: 12,
-    color: '#4CAF50',
-    fontWeight: '600',
+    fontSize: 13,
+    color: '#6C63FF',
+    marginTop: 4,
+    fontWeight: '500',
   },
   listContainer: {
     padding: 16,
-    paddingBottom: 80,
+    paddingBottom: 120,
   },
   taskCard: {
     backgroundColor: '#1a2335',
@@ -295,17 +271,17 @@ const styles = StyleSheet.create({
   taskHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 8,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1,
   },
   taskTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#ffffffd3',
     flex: 1,
@@ -317,14 +293,15 @@ const styles = StyleSheet.create({
   taskDescription: {
     fontSize: 13,
     color: '#888',
-    marginLeft: 36,
+    marginLeft: 30,
     marginBottom: 12,
+    lineHeight: 18,
   },
   taskFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginLeft: 36,
+    marginLeft: 30,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -343,56 +320,36 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#888',
   },
-  fab: {
-    position: 'absolute',
-    bottom: 40,
-    right: 20,
-    backgroundColor: '#1a2335',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
+  priorityBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#1a2335',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    gap: 4,
+  },
+  taskPriority: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   emptyContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
+    paddingTop: 80,
+    paddingBottom: 80,
   },
   emptyText: {
     fontSize: 18,
     color: '#666',
     marginTop: 10,
+    fontWeight: '500',
   },
   emptySubtext: {
     fontSize: 14,
     color: '#888',
     marginTop: 5,
   },
-   priorityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  taskPriority: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  completedText: {
-    opacity: 0.5,
-    textDecorationLine: 'line-through',
-  },
-  completedBadge: {
-    opacity: 0.5,
-  },
 });
-export default HomeScreen;
+
+export default Tasks;

@@ -11,10 +11,12 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import DeleteModal from '../component/DeleteModal';
+import DeleteModal from '../../Components/DeleteModal';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { getTaskById, updateTask, deleteTask } from '../services/api';
+import { getTaskById, updateTask, deleteTask } from '../../services/api';
+import ChecklistAPI from '../../services/Checklistapi';
+import NavBar from '../../Components/NavBar';
 
 function DetailsScreen({ navigation, route }) {
   const { task: initialTask } = route.params;
@@ -30,27 +32,36 @@ function DetailsScreen({ navigation, route }) {
   const [editStatus, setEditStatus] = useState(task.status || 'PENDING');
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
+  const [isAddingChecklist, setIsAddingChecklist] = useState(false);
+  const [progress, setProgress] = useState(null);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity 
           onPress={() => setMenuVisible(true)}
-          style={{ marginRight: 16 }}
+          style={{ marginRight: 16, padding: 4 }}
         >
           <Ionicons name="ellipsis-vertical" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       ),
       headerStyle: {
         backgroundColor: '#0b1220',
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 0,
       },
       headerTintColor: '#FFFFFF',
       headerTitleStyle: {
         fontWeight: '600',
+        fontSize: 18,
+      },
+      headerTitleContainerStyle: {
+        paddingHorizontal: 10,
       },
     });
   }, [navigation]);
@@ -58,6 +69,7 @@ function DetailsScreen({ navigation, route }) {
   useFocusEffect(
     useCallback(() => {
       fetchUpdatedTask();
+      fetchProgress();
     }, [])
   );
 
@@ -65,15 +77,49 @@ function DetailsScreen({ navigation, route }) {
     try {
       setLoading(true);
       const response = await getTaskById(initialTask.id);
-      setTask(response.data);
-      setEditTitle(response.data.title);
-      setEditDescription(response.data.description || '');
-      setEditStatus(response.data.status || 'PENDING');
-      setEditPriority(response.data.priority || 'MEDIUM');
+      
+      console.log('📦 Full task response:', JSON.stringify(response.data, null, 2));
+      
+      const taskData = response.data;
+      
+      // Handle both possible field names for checklist
+      if (taskData.checklistItems) {
+        taskData.checklist = taskData.checklistItems;
+      }
+      
+      setTask(taskData);
+      setEditTitle(taskData.title);
+      setEditDescription(taskData.description || '');
+      setEditStatus(taskData.status || 'PENDING');
+      setEditPriority(taskData.priority || 'MEDIUM');
     } catch (error) {
       console.error('Error fetching updated task:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProgress = async () => {
+    try {
+      const response = await ChecklistAPI.getTaskProgress(initialTask.id);
+      console.log('📊 Progress data:', response.data);
+      setProgress(response.data);
+    } catch (error) {
+      console.error('Error fetching progress:', error);
+      // Fallback: Calculate locally if API fails
+      const checklist = task.checklist || [];
+      const totalItems = checklist.length;
+      const completedItems = checklist.filter(item => item.completed).length;
+      const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+      
+      setProgress({
+        taskId: task.id,
+        taskTitle: task.title,
+        totalItems: totalItems,
+        completedItems: completedItems,
+        progressPercentage: progressPercentage,
+        status: task.status
+      });
     }
   };
 
@@ -91,11 +137,13 @@ function DetailsScreen({ navigation, route }) {
         description: editDescription.trim() || null,
         priority: task.priority,
         status: task.status,
+        checklistItems: task.checklist || [],
       };
       
       await updateTask(task.id, updatedTask);
       setTask(prev => ({ ...prev, title: editTitle.trim() }));
       setIsEditingTitle(false);
+      await fetchProgress();
     } catch (error) {
       Alert.alert('Error', 'Failed to update title');
       setEditTitle(task.title);
@@ -112,11 +160,13 @@ function DetailsScreen({ navigation, route }) {
         description: editDescription.trim() || null,
         priority: task.priority,
         status: task.status,
+        checklistItems: task.checklist || [],
       };
       
       await updateTask(task.id, updatedTask);
       setTask(prev => ({ ...prev, description: editDescription.trim() || null }));
       setIsEditingDescription(false);
+      await fetchProgress();
     } catch (error) {
       Alert.alert('Error', 'Failed to update description');
     } finally {
@@ -134,8 +184,7 @@ function DetailsScreen({ navigation, route }) {
       await deleteTask(taskToDelete.id);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setDeleteModalVisible(false);
-      // Navigate to Home after successful deletion
-      navigation.replace('Home'); // This replaces the current screen with Home
+      navigation.replace('Home');
     } catch (error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('Error', 'Failed to delete task');
@@ -152,9 +201,97 @@ function DetailsScreen({ navigation, route }) {
     setDeleteModalVisible(true);
   };
 
-  const handleEdit = () => {
-    setMenuVisible(false);
-    setIsEditingTitle(true);
+  // Toggle checklist item using the dedicated API endpoint
+  const toggleChecklistItem = async (checklistId) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      
+      // Use the toggle endpoint from ChecklistAPI
+      await ChecklistAPI.toggleChecklistItem(task.id, checklistId);
+      
+      // Refresh task and progress to get updated data
+      await fetchUpdatedTask();
+      await fetchProgress();
+      
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error('Error toggling checklist item:', error);
+      Alert.alert('Error', 'Failed to update checklist item');
+    }
+  };
+
+  // Add new checklist item
+  const addChecklistItem = async () => {
+    if (!newChecklistItem.trim()) {
+      Alert.alert('Error', 'Please enter a checklist item');
+      return;
+    }
+
+    setIsAddingChecklist(true);
+    try {
+      const newItem = {
+        item: newChecklistItem.trim(),
+        completed: false
+      };
+      
+      const updatedChecklist = [...(task.checklist || []), newItem];
+      
+      const updatedTask = {
+        ...task,
+        checklistItems: updatedChecklist,
+      };
+      
+      console.log('📤 Sending updated task with new checklist:', JSON.stringify(updatedTask, null, 2));
+      
+      await updateTask(task.id, updatedTask);
+      
+      // Refresh task and progress
+      await fetchUpdatedTask();
+      await fetchProgress();
+      
+      setNewChecklistItem('');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error('Error adding checklist item:', error);
+      Alert.alert('Error', 'Failed to add checklist item');
+    } finally {
+      setIsAddingChecklist(false);
+    }
+  };
+
+  // Delete checklist item
+  const deleteChecklistItem = async (checklistId) => {
+    Alert.alert(
+      'Delete Item',
+      'Are you sure you want to delete this checklist item?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updatedChecklist = task.checklist.filter(item => item.id !== checklistId);
+              const updatedTask = {
+                ...task,
+                checklistItems: updatedChecklist,
+              };
+              
+              await updateTask(task.id, updatedTask);
+              
+              // Refresh task and progress
+              await fetchUpdatedTask();
+              await fetchProgress();
+              
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (error) {
+              console.error('Error deleting checklist item:', error);
+              Alert.alert('Error', 'Failed to delete checklist item');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const getPriorityDisplay = (priority) => {
@@ -188,11 +325,18 @@ function DetailsScreen({ navigation, route }) {
   if (loading && !isEditingTitle && !isEditingDescription && !isEditingPriority && !isEditingStatus) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0b1220" />
+        <ActivityIndicator size="large" color="#6C63FF" />
         <Text style={styles.loadingText}>Loading...</Text>
+        <NavBar navigation={navigation} activeScreen="details" />
       </View>
     );
   }
+
+  // Use progress from API if available, otherwise calculate locally
+  const totalItems = progress?.totalItems ?? task.checklist?.length ?? 0;
+  const completedItems = progress?.completedItems ?? task.checklist?.filter(item => item.completed).length ?? 0;
+  const progressPercentage = progress?.progressPercentage ?? (totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0);
+  const checklist = task.checklist || [];
 
   return (
     <View style={styles.mainContainer}>
@@ -209,6 +353,7 @@ function DetailsScreen({ navigation, route }) {
               onPress={confirmDelete}
             >
               <Ionicons name="trash-outline" size={20} color="#EF4444" />
+              <Text style={[styles.menuItemText, styles.menuItemDanger]}>Delete Task</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -257,7 +402,7 @@ function DetailsScreen({ navigation, route }) {
           ) : (
             <TouchableOpacity onPress={() => setIsEditingDescription(true)}>
               <Text style={styles.description}>
-                {task.description}
+                {task.description || 'No description'}
               </Text>
             </TouchableOpacity>
           )}
@@ -266,9 +411,14 @@ function DetailsScreen({ navigation, route }) {
         {/* Due Date */}
         <View style={styles.section}>
           <Text style={styles.label}>Due Date</Text>
-           <Text style={styles.dueDate}> 
-                {task.dueDate}
-            </Text>
+          <Text style={styles.dueDate}> 
+            {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            }) : 'No due date'}
+          </Text>
         </View>
 
         {/* Priority */}
@@ -284,7 +434,7 @@ function DetailsScreen({ navigation, route }) {
                     key={level}
                     style={[
                       styles.priorityOption,
-                      isSelected
+                      isSelected && styles.priorityOptionSelected
                     ]}
                     onPress={async () => {
                       setEditPriority(level);
@@ -296,9 +446,11 @@ function DetailsScreen({ navigation, route }) {
                           description: task.description || null,
                           priority: level,
                           status: task.status,
+                          checklistItems: task.checklist || [],
                         };
                         await updateTask(task.id, updatedTask);
                         setTask(prev => ({ ...prev, priority: level }));
+                        await fetchProgress();
                       } catch (error) {
                         Alert.alert('Error', 'Failed to update priority');
                       } finally {
@@ -355,110 +507,112 @@ function DetailsScreen({ navigation, route }) {
         {/* Status */}
         <View style={styles.section}>
           <Text style={styles.label}>Status</Text>
-          {isEditingStatus ? (
-            <View style={styles.editStatusContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.statusOption,
-                  editStatus === 'PENDING' && styles.statusOptionPending,
-                ]}
-                onPress={async () => {
-                  setEditStatus('PENDING');
-                  setIsEditingStatus(false);
-                  setSaving(true);
-                  try {
-                    const updatedTask = {
-                      title: task.title,
-                      description: task.description || null,
-                      priority: task.priority,
-                      status: 'PENDING',
-                    };
-                    await updateTask(task.id, updatedTask);
-                    setTask(prev => ({ ...prev, status: 'PENDING' }));
-                  } catch (error) {
-                    Alert.alert('Error', 'Failed to update status');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-              >
-                <Ionicons name="radio-button-off" size={16} color="#fff" />
-                <Text style={styles.statusOptionText}>Pending</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.statusOption,
-                  editStatus === 'IN_PROGRESS' && styles.statusOptionProgress,
-                ]}
-                onPress={async () => {
-                  setEditStatus('IN_PROGRESS');
-                  setIsEditingStatus(false);
-                  setSaving(true);
-                  try {
-                    const updatedTask = {
-                      title: task.title,
-                      description: task.description || null,
-                      priority: task.priority,
-                      status: 'IN_PROGRESS',
-                    };
-                    await updateTask(task.id, updatedTask);
-                    setTask(prev => ({ ...prev, status: 'IN_PROGRESS' }));
-                  } catch (error) {
-                    Alert.alert('Error', 'Failed to update status');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-              >
-                <Ionicons name="time" size={16} color="#fff" />
-                <Text style={styles.statusOptionText}>In Progress</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.statusOption,
-                  editStatus === 'COMPLETED' && styles.statusOptionCompleted,
-                ]}
-                onPress={async () => {
-                  setEditStatus('COMPLETED');
-                  setIsEditingStatus(false);
-                  setSaving(true);
-                  try {
-                    const updatedTask = {
-                      title: task.title,
-                      description: task.description || null,
-                      priority: task.priority,
-                      status: 'COMPLETED',
-                    };
-                    await updateTask(task.id, updatedTask);
-                    setTask(prev => ({ ...prev, status: 'COMPLETED' }));
-                  } catch (error) {
-                    Alert.alert('Error', 'Failed to update status');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-              >
-                <Ionicons name="checkmark-circle" size={16} color="#fff" />
-                <Text style={styles.statusOptionText}>Completed</Text>
-              </TouchableOpacity>
+            <View style={[styles.statusBadge, { backgroundColor: statusDisplay.color + '20' }]}>
+              <Ionicons name={statusDisplay.icon} size={16} color={statusDisplay.color} />
+              <Text style={[styles.status, { color: statusDisplay.color }]}>
+                {statusDisplay.text}
+              </Text>
+          </View>
+        </View>
+
+        {/* Checklist Section */}
+        <View style={styles.checklistSection}>
+          <View style={styles.checklistHeader}>
+            <View style={styles.checklistTitleRow}>
+              <Text style={styles.checklistTitle}>Checklist</Text>
+              {totalItems > 0 && (
+                <Text style={styles.checklistCount}>{totalItems} items</Text>
+              )}
+            </View>
+            
+            {totalItems > 0 && (
+              <View style={styles.progressContainer}>
+                <View style={styles.progressHeader}>
+                  <Text style={styles.progressText}>
+                    {completedItems}/{totalItems} completed
+                  </Text>
+                  <Text style={styles.progressPercentage}>
+                    {progressPercentage}%
+                  </Text>
+                </View>
+                <View style={styles.progressBar}>
+                  <View 
+                    style={[
+                      styles.progressFill, 
+                      { 
+                        width: `${progressPercentage}%`,
+                        backgroundColor: progressPercentage === 100 ? '#22C55E' : '#6C63FF'
+                      }
+                    ]} 
+                  />
+                </View>
+              </View>
+            )}
+          </View>
+
+          {totalItems > 0 ? (
+            <View style={styles.checklistItems}>
+              {checklist.map((item, index) => (
+                <View key={item.id || index} style={styles.checklistItem}>
+                  <TouchableOpacity
+                    style={styles.checklistItemContent}
+                    onPress={() => toggleChecklistItem(item.id)}
+                  >
+                    <Ionicons 
+                      name={item.completed ? 'checkbox' : 'square-outline'} 
+                      size={24} 
+                      color={item.completed ? '#7c4dff' : '#888'} 
+                    />
+                    <Text style={[styles.checklistItemText, item.completed && styles.checklistItemCompleted]}>
+                      {item.item}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteChecklistItem}
+                    onPress={() => deleteChecklistItem(item.id)}
+                  >
+                    <Ionicons name="close-circle" size={20} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
           ) : (
-            <TouchableOpacity onPress={() => {
-              setEditStatus(task.status || 'PENDING');
-              setIsEditingStatus(true);
-            }}>
-              <View style={[styles.statusBadge, { backgroundColor: statusDisplay.color + '20' }]}>
-                <Ionicons name={statusDisplay.icon} size={16} color={statusDisplay.color} />
-                <Text style={[styles.status, { color: statusDisplay.color }]}>
-                  {statusDisplay.text}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.noChecklistContainer}>
+              <Ionicons name="list-outline" size={48} color="#444" />
+              <Text style={styles.noChecklistText}>No checklist items</Text>
+              <Text style={styles.noChecklistSubtext}>Add items below to track your progress</Text>
+            </View>
           )}
+
+          {/* Add Checklist Item */}
+          <View style={styles.addChecklistContainer}>
+            <TextInput
+              style={styles.addChecklistInput}
+              value={newChecklistItem}
+              onChangeText={setNewChecklistItem}
+              placeholder="Add new checklist item..."
+              placeholderTextColor="#666"
+              editable={!isAddingChecklist}
+            />
+            <TouchableOpacity
+              style={styles.addChecklistButton}
+              onPress={addChecklistItem}
+              disabled={isAddingChecklist || !newChecklistItem.trim()}
+            >
+              <Ionicons 
+                name="checkmark-circle" 
+                size={32} 
+                color={newChecklistItem.trim() ? '#6C63FF' : '#898989'} 
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-        {/* Extra bottom padding for better scrolling */}
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* NavBar */}
+      <NavBar navigation={navigation} activeScreen="details" />
 
       {/* Delete Modal */}
       <DeleteModal
@@ -468,10 +622,7 @@ function DetailsScreen({ navigation, route }) {
           setDeleteModalVisible(false);
           setTaskToDelete(null);
         }}
-        onDelete={async () => {
-          await handleDelete();
-          navigation.replace('Home'); // Navigate after delete
-        }}
+        onDelete={handleDelete}
         isDeleting={isDeleting}
       />
     </View>
@@ -489,7 +640,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 70,
     paddingBottom: 100,
   },
   loadingContainer: {
@@ -503,17 +654,6 @@ const styles = StyleSheet.create({
     color: '#ffffffd3',
     fontSize: 16,
   },
-  savingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginBottom: 10,
-    gap: 5,
-  },
-  savingText: {
-    fontSize: 12,
-    color: '#4CAF50',
-  },
   section: {
     marginBottom: 24,
   },
@@ -522,6 +662,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 20,
   },
   titleInput: {
     fontSize: 28,
@@ -529,6 +671,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     textAlign: 'center',
     padding: 0,
+    paddingTop: 20,
+    paddingHorizontal: 20,
   },
   label: {
     fontSize: 14,
@@ -593,17 +737,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#b9b6b6d3',
   },
-  dateButton: {
-    backgroundColor: '#1a2335',
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-    borderRadius: 8,
-    padding: 12,
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#ffffffd3',
-  },
   priorityDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -630,6 +763,10 @@ const styles = StyleSheet.create({
     gap: 3,
     borderWidth: 2,
     borderColor: 'transparent',
+    backgroundColor: '#1a2335',
+  },
+  priorityOptionSelected: {
+    backgroundColor: 'rgba(108, 99, 255, 0.2)',
   },
   priorityOptionText: {
     fontSize: 14,
@@ -652,7 +789,7 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     position: 'absolute',
-    top: 0,
+    top: 60,
     right: 12,
     backgroundColor: '#1a2335',
     borderRadius: 12,
@@ -664,6 +801,7 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 1,
     borderColor: '#2a3448',
+    minWidth: 150,
   },
   menuItem: {
     flexDirection: 'row',
@@ -671,10 +809,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 12,
-  },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#2a3448',
   },
   menuItemText: {
     fontSize: 16,
@@ -685,6 +819,131 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 40,
+  },
+  checklistSection: {
+    marginTop: 8,
+    marginBottom: 24,
+    backgroundColor: '#1a2335',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#232b45',
+  },
+  checklistHeader: {
+    marginBottom: 16,
+  },
+  checklistTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  checklistTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffffd3',
+  },
+  checklistCount: {
+    fontSize: 13,
+    color: '#ffffffd3',
+    fontWeight: '500',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  progressContainer: {
+    marginBottom: 4,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#888',
+  },
+  progressPercentage: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#6C63FF',
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#0b1220',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  checklistItems: {
+    marginBottom: 12,
+  },
+  checklistItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  checklistItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  checklistItemText: {
+    fontSize: 15,
+    color: '#ffffffd3',
+    flex: 1,
+  },
+  checklistItemCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#666',
+  },
+  deleteChecklistItem: {
+    padding: 4,
+  },
+  noChecklistContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+  },
+  noChecklistText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 12,
+    fontWeight: '500',
+  },
+  noChecklistSubtext: {
+    fontSize: 13,
+    color: '#444',
+    marginTop: 4,
+  },
+  addChecklistContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+  },
+  addChecklistInput: {
+    flex: 1,
+    backgroundColor: '#0b1220',
+    borderRadius: 8,
+    padding: 12,
+    color: '#ffffffd3',
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#232b45',
+  },
+  addChecklistButton: {
+    padding: 4,
   },
 });
 
