@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const API_BASE_URL = 'http://192.168.1.214:8080/api/tasks';
+const API_BASE_URL = 'http://192.168.1.113:8080/api/tasks';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,

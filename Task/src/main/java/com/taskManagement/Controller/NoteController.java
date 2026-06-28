@@ -40,7 +40,7 @@ public class NoteController {
         return noteService.createNote(noteDto);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public MessageDto delete(@PathVariable long id) {
         return noteService.deleteNote(id);
     }

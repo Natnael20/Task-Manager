@@ -9,7 +9,6 @@ const api = axios.create({
     },
 });
 
-// Option A: Export as an object directly
 const Taskapi = {
     // Get all tasks
     getAllTasks: () => api.get('/all'),
@@ -25,12 +24,6 @@ const Taskapi = {
     
     // Delete task
     deleteTask: (id) => api.delete(`/${id}`),
-
-    toggleChecklistItem: (taskId, itemId) => 
-        api.put(`/tasks/${taskId}/toggle/${itemId}`),
-    
-    getTaskProgress: (taskId) => 
-        api.get(`/tasks/${taskId}/progress`),
 };
 
 
